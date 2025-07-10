@@ -23,7 +23,7 @@ import (
 	"github.com/kennygrant/sanitize"
 	"github.com/pariz/gountries"
 	"github.com/surfe/logger/v2"
-	"github.com/surfe/utils/utils/urls"
+	"github.com/surfe/utils/urls"
 	"github.com/yuin/goldmark"
 	"github.com/yuin/goldmark/extension"
 	"github.com/yuin/goldmark/parser"
