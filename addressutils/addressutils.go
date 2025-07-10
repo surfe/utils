@@ -29,14 +29,18 @@ func IsValidCountryCode(code string) bool {
 
 func CountryNameToCode(name string) string {
 	query := gountries.New()
+
 	country, err := query.FindCountryByName(name)
 	if err != nil {
 		return ""
 	}
+
 	return country.Alpha2
 }
 
-func LinkedInLocationToCityState(location string) (city string, state string) {
+func LinkedInLocationToCityState(location string) (string, string) {
+	var city, state string
+
 	parts := strings.Split(location, ",")
 	for i := range parts {
 		parts[i] = strings.TrimSpace(parts[i])

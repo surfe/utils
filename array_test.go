@@ -3,7 +3,7 @@ package utils
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestGetByIndexOrNil(t *testing.T) {
@@ -40,7 +40,7 @@ func TestGetByIndexOrNil(t *testing.T) {
 			t.Parallel()
 
 			actual := SliceFromIndexOrNil(tt.slice, tt.index)
-			assert.Equal(t, tt.want, actual)
+			require.Equal(t, tt.want, actual)
 		})
 	}
 }
@@ -52,6 +52,7 @@ func TestMergeWithoutDuplicates(t *testing.T) {
 		a []string
 		b []string
 	}
+
 	tests := []struct {
 		name string
 		args args
@@ -71,7 +72,7 @@ func TestMergeWithoutDuplicates(t *testing.T) {
 			t.Parallel()
 
 			got := MergeWithoutDuplicates(tt.args.a, tt.args.b)
-			assert.Equal(t, tt.want, got)
+			require.Equal(t, tt.want, got)
 		})
 	}
 }
@@ -83,10 +84,11 @@ func TestSafeAppendToSlice(t *testing.T) {
 		t.Parallel()
 
 		var nilSlice *[]int
+
 		result := SafeAppendToSlice(nilSlice, 1)
 
-		assert.NotNil(t, result)
-		assert.Equal(t, []int{1}, *result)
+		require.NotNil(t, result)
+		require.Equal(t, []int{1}, *result)
 	})
 
 	t.Run("append to existing slice", func(t *testing.T) {
@@ -95,7 +97,7 @@ func TestSafeAppendToSlice(t *testing.T) {
 		existingSlice := &[]int{1, 2}
 		result := SafeAppendToSlice(existingSlice, 3)
 
-		assert.Equal(t, []int{1, 2, 3}, *result)
-		assert.Same(t, existingSlice, result)
+		require.Equal(t, []int{1, 2, 3}, *result)
+		require.Same(t, existingSlice, result)
 	})
 }

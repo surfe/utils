@@ -3,7 +3,6 @@ package utils
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -48,7 +47,7 @@ func TestSafeString(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			assert.Equal(t, tt.want, SafeString(tt.input))
+			require.Equal(t, tt.want, SafeString(tt.input))
 		})
 	}
 }
@@ -56,9 +55,11 @@ func TestSafeString(t *testing.T) {
 func TestGetFloat(t *testing.T) {
 	t.Parallel()
 
-	var intValue = 1
-	var float32Value float32 = 0.4
-	var float64Value = 0.5
+	var (
+		intValue             = 1
+		float32Value float32 = 0.4
+		float64Value         = 0.5
+	)
 
 	tests := []struct {
 		name       string
@@ -96,8 +97,8 @@ func TestGetFloat(t *testing.T) {
 			t.Parallel()
 
 			got, err := GetFloat(tt.value)
-			assert.InDelta(t, tt.want, got, 0.000001)
-			assert.Equal(t, tt.isErrorNil, err == nil)
+			require.InDelta(t, tt.want, got, 0.000001)
+			require.Equal(t, tt.isErrorNil, err == nil)
 		})
 	}
 }
@@ -163,6 +164,7 @@ func TestGetSafeType(t *testing.T) {
 		SomeInt     int
 		SomePointer *T
 	}
+
 	tests := []struct {
 		name string
 		ptr  *T
@@ -288,6 +290,7 @@ func TestGetPointerOrNil(t *testing.T) {
 	for _, tc := range stringCases {
 		t.Run("string/"+tc.name, func(t *testing.T) {
 			t.Parallel()
+
 			got := GetPointerOrNil(tc.input)
 			require.Equal(t, tc.expected, got)
 		})
@@ -296,6 +299,7 @@ func TestGetPointerOrNil(t *testing.T) {
 	for _, tc := range intCases {
 		t.Run("int/"+tc.name, func(t *testing.T) {
 			t.Parallel()
+
 			got := GetPointerOrNil(tc.input)
 			require.Equal(t, tc.expected, got)
 		})
@@ -304,6 +308,7 @@ func TestGetPointerOrNil(t *testing.T) {
 	for _, tc := range boolCases {
 		t.Run("bool/"+tc.name, func(t *testing.T) {
 			t.Parallel()
+
 			got := GetPointerOrNil(tc.input)
 			require.Equal(t, tc.expected, got)
 		})

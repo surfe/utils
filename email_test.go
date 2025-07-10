@@ -3,7 +3,7 @@ package utils
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestIsPersonalEmail(t *testing.T) {
@@ -21,7 +21,7 @@ func TestIsPersonalEmail(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.email, func(t *testing.T) {
 			t.Parallel()
-			assert.Equal(t, tt.expected, IsPersonalEmail(tt.email))
+			require.Equal(t, tt.expected, IsPersonalEmail(tt.email))
 		})
 	}
 }
@@ -43,7 +43,7 @@ func TestIsPersonalEmailDomain(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			assert.Equal(t, tt.expected, IsPersonalEmailDomain(tt.domain))
+			require.Equal(t, tt.expected, IsPersonalEmailDomain(tt.domain))
 		})
 	}
 }

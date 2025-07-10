@@ -32,6 +32,7 @@ func Clean(phone string) string {
 	if cleaned == "" {
 		return ""
 	}
+
 	if strings.HasPrefix(phone, "+") {
 		return "+" + cleaned
 	}

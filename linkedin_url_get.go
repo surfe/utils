@@ -11,8 +11,10 @@ func RemoveWithEmptyOrNotEqualLinkedinURL[T linkedinURLGetter](entities []T, key
 	}
 
 	remainingRecords := make([]T, 0)
+
 	for _, e := range entities {
 		crmLinkedinURL := e.GetLinkedinURL(key)
+
 		cleanCRMLinkedinURL := LinkedinURLCleaner(crmLinkedinURL)
 		if cleanCRMLinkedinURL == "" || ExtractHostAndPath(cleanCRMLinkedinURL) == ExtractHostAndPath(cleanLinkedInURL) {
 			remainingRecords = append(remainingRecords, e)

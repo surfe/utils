@@ -5,6 +5,7 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/gob"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -49,6 +50,7 @@ func MaskEmail(str string) string {
 
 	username := parts[0]
 	domain := parts[1]
+
 	return fmt.Sprintf("%s%s%s@%s",
 		username[:1],
 		strings.Repeat("*", len(username)-2),
@@ -61,21 +63,24 @@ func MaskStringWithAsterisks(str string) string {
 	if len(str) <= 2 {
 		return "**"
 	}
+
 	return str[0:1] + strings.Repeat("*", len(str)-2) + str[len(str)-1:]
 }
 
 func ToValidEmail(email string) (string, bool) {
 	email = strings.TrimSpace(strings.ToLower(email))
+
 	return email, reEmail.MatchString(email)
 }
 
-// Title capitalizes the first letter of a string
+// Title capitalizes the first letter of a string.
 func Title(s string) string {
 	if len(s) == 0 {
 		return s
 	}
 
 	parts := strings.Split(s, " ")
+
 	runes := make([]rune, 0, len(s))
 	for _, p := range parts {
 		runesP := []rune(p)
@@ -87,6 +92,7 @@ func Title(s string) string {
 		runes = append(runes, runesP...)
 		runes = append(runes, ' ')
 	}
+
 	return strings.TrimSpace(string(runes))
 }
 
@@ -100,11 +106,13 @@ func DomainFromURL(s string) string {
 		if !errors.Is(err, ErrEmptyURL) {
 			logger.Log(context.Background()).Err(err).Infof("DomainFromURLNoFiltering failed for %s", s)
 		}
+
 		return ""
 	}
 
 	if urls.IsURLShortenerDomain(domain) {
-		if redirectedDomain, err := getRedirectedDomain(s); err == nil {
+		redirectedDomain, err := getRedirectedDomain(s)
+		if err == nil {
 			domain = redirectedDomain
 		} else {
 			logger.Log(context.Background()).Err(err).Errorf("GetRedirectedDomain: %s", s)
@@ -127,13 +135,14 @@ func SubdomainWithDomainFromURL(s string) (string, error) {
 	if !reWebSchema.MatchString(s) {
 		s = "//" + s // URL needs to prefixed with `//` to be parseable
 	}
+
 	u, err := tld.Parse(s)
 	if err != nil {
 		return "", fmt.Errorf("parse domain from URL: %w", err)
 	}
 
 	if u.Domain == "" && u.TLD == "" {
-		return "", fmt.Errorf("empty domain and TLD")
+		return "", errors.New("empty domain and TLD")
 	}
 
 	if (u.Subdomain == "") || (strings.ToLower(u.Subdomain) == "www") {
@@ -157,7 +166,6 @@ func DomainFromURLNoFiltering(s string) (string, error) {
 	if err != nil {
 		if strings.Contains(err.Error(), "cannot derive eTLD+1") {
 			tempURL, urlErr := url.Parse(s)
-
 			if urlErr == nil && tempURL.Host != "" && strings.Contains(tempURL.Host, ".") {
 				return tempURL.Host, nil
 			}
@@ -167,7 +175,7 @@ func DomainFromURLNoFiltering(s string) (string, error) {
 	}
 
 	if u.Domain == "" && u.TLD == "" {
-		return "", fmt.Errorf("empty domain and TLD")
+		return "", errors.New("empty domain and TLD")
 	}
 
 	return u.Domain + "." + u.TLD, nil
@@ -178,6 +186,7 @@ func DomainFromEmail(email string) string {
 	if len(parts) != 2 {
 		return ""
 	}
+
 	return parts[1]
 }
 
@@ -190,11 +199,12 @@ func FormatDomainURL(domainURL string) string {
 	return parsedURL.Hostname()
 }
 
-// DomainNameWithoutTLD extracts the name of the domain, e.g. input: `https://www.surfe.com/some-path`, output: `surfe`
+// DomainNameWithoutTLD extracts the name of the domain, e.g. input: `https://www.surfe.com/some-path`, output: `surfe`.
 func DomainNameWithoutTLD(rawURL string) string {
 	if !strings.HasPrefix(rawURL, "http") {
 		rawURL = "http://" + rawURL
 	}
+
 	parsedURL, err := url.Parse(rawURL)
 	if err != nil {
 		return ""
@@ -206,6 +216,7 @@ func DomainNameWithoutTLD(rawURL string) string {
 	if len(parts) > 1 {
 		return parts[0]
 	}
+
 	return host
 }
 
@@ -217,6 +228,7 @@ func RemoveQueryParams(s string) string {
 
 	u.RawQuery = ""
 	u.Path = strings.TrimSuffix(u.Path, "/")
+
 	return u.String()
 }
 
@@ -235,6 +247,7 @@ func SameDomains(linkedinDomain, crmDomain string) bool {
 func RemoveAccents(s string) (string, error) {
 	t := transform.Chain(norm.NFD, runes.Remove(runes.In(unicode.Mn)), norm.NFC)
 	output, _, err := transform.String(t, s)
+
 	return output, err
 }
 
@@ -248,7 +261,7 @@ func SanitizeName(s string) string {
 	return s
 }
 
-// SimplifyName removes leading and trailing abbreviations from given name after sanitizing
+// SimplifyName removes leading and trailing abbreviations from given name after sanitizing.
 func SimplifyName(s string) string {
 	s = SanitizeName(s)
 
@@ -270,7 +283,7 @@ func SimplifyName(s string) string {
 	return s
 }
 
-// SimplifyCompanyName removes abbreviations from given company name
+// SimplifyCompanyName removes abbreviations from given company name.
 func SimplifyCompanyName(originalName string) string {
 	s := originalName
 	if reRemoveAbbreviationsWithDots.MatchString(s) {
@@ -286,24 +299,29 @@ func SimplifyCompanyName(originalName string) string {
 	if len(s) < 3 {
 		return originalName
 	}
+
 	return s
 }
 
-// SanitizeForSOQL escapes chars which are valid in SOQL queries
+// SanitizeForSOQL escapes chars which are valid in SOQL queries.
 func SanitizeForSOQL(s string) string {
 	s = strings.ReplaceAll(s, "'", `\'`) // Single-quote
 	s = strings.ReplaceAll(s, `"`, `\"`) // Double-quote
 	s = strings.ReplaceAll(s, "_", `\_`) // Underscore
 	s = strings.ReplaceAll(s, "%", `\%`) // Percent sign
+
 	return s
 }
 
-func LooseString(s string) (text string) {
+func LooseString(s string) string {
+	var text string
+
 	text = strings.ReplaceAll(s, "&", "and")
 	text = strings.ReplaceAll(text, "@", "at")
 	text = unidecode.Unidecode(text)
 	text = strings.ToLower(text)
 	text = removeNonAlphanumericCharacters(text)
+
 	return text
 }
 
@@ -315,21 +333,25 @@ func TrimSuffix(s, suffix string) (string, bool) {
 	if strings.HasSuffix(s, suffix) {
 		return s[:len(s)-len(suffix)], true
 	}
+
 	return s, false
 }
 
-// URLHostnameExtractor extracts hostname from given URL string, and removes `www.` prefix if exists
+// URLHostnameExtractor extracts hostname from given URL string, and removes `www.` prefix if exists.
 func URLHostnameExtractor(s string) string {
 	if s == "" {
 		return ""
 	}
+
 	if !reWebSchema.MatchString(s) {
 		s = "//" + s // URL needs to prefixed with `//` to be parseable
 	}
+
 	u, err := url.Parse(s)
 	if err != nil {
 		return ""
 	}
+
 	return reWWW.ReplaceAllString(u.Hostname(), "")
 }
 
@@ -347,6 +369,7 @@ func URLProfileExtract(s string) string {
 	if len(m) < 3 {
 		return ""
 	}
+
 	res, _ := url.QueryUnescape(m[2])
 
 	return res
@@ -384,7 +407,7 @@ func ExtractLinkedInSlug(s string) string {
 
 // ContactProfileURL creates link with provided ID. Handle, MemberID or SalesNavID will work well with this link.
 func ContactProfileURL(id string) string {
-	return fmt.Sprintf("https://linkedin.com/in/%s", id)
+	return "https://linkedin.com/in/" + id
 }
 
 // OrganizationProfileURL creates link with provided ID. Handle, MemberID or SalesNavID will work well with this link.
@@ -393,11 +416,12 @@ func OrganizationProfileURL(id string) string {
 	if id == "" {
 		return ""
 	}
-	return fmt.Sprintf("https://linkedin.com/company/%s", id)
+
+	return "https://linkedin.com/company/" + id
 }
 
 // URNExtractor extracts ID from URN e.g. 13205888 from urn:li:fs_normalized_company:13205888
-// or ACwAAAJlc6wBYdHGFmVJDHu from urn:li:fs_salesProfile:(ACwAAAJlc6wBYdHGFmVJDHu,NAME_SEARCH,ij9X)
+// or ACwAAAJlc6wBYdHGFmVJDHu from urn:li:fs_salesProfile:(ACwAAAJlc6wBYdHGFmVJDHu,NAME_SEARCH,ij9X).
 var URNExtractor = func(s string) string {
 	a := strings.Split(s, ":")
 	if len(a) == 0 {
@@ -413,6 +437,7 @@ var URNExtractor = func(s string) string {
 	}
 
 	splitContent := strings.Split(matches[1], ",")
+
 	return strings.TrimSpace(splitContent[0])
 }
 
@@ -421,6 +446,7 @@ func SalesProfileURLFromURN(s string) string {
 	if err != nil {
 		return ""
 	}
+
 	return salesPeopleProfilePageRoot + "/" + urn.ProfileID
 }
 
@@ -430,18 +456,20 @@ func SalesCompanyURLFromURN(s string) string {
 	if id == "" {
 		return ""
 	}
+
 	return salesCompanyProfilePageRoot + "/" + id
 }
 
 const salesPeopleProfilePageRoot = "https://www.linkedin.com/sales/people"
 const salesCompanyProfilePageRoot = "https://www.linkedin.com/sales/company"
 
-// ExtractSalesProfileIDFromURN extracts e.g. 34307789 from urn:li:fs_salesCompany:34307789
+// ExtractSalesProfileIDFromURN extracts e.g. 34307789 from urn:li:fs_salesCompany:34307789.
 func ExtractSalesProfileIDFromURN(s string) string {
 	urnArr := strings.Split(s, ":")
 	if len(urnArr) != 4 {
 		return ""
 	}
+
 	return urnArr[3]
 }
 
@@ -455,22 +483,26 @@ func ExtractSalesNavIDFromURL(s string) string {
 	if len(parts) == 0 {
 		return ""
 	}
+
 	urlParts := strings.Split(parts[0], "/")
 	if len(urlParts) == 0 {
 		return ""
 	}
+
 	return urlParts[len(urlParts)-1]
 }
 
 func Hash(o interface{}) string {
 	h := sha256.New()
-	h.Write([]byte(fmt.Sprintf("%v", o)))
-	return fmt.Sprintf("%x", h.Sum(nil))
+	fmt.Fprintf(h, "%v", o)
+
+	return hex.EncodeToString(h.Sum(nil))
 }
 
 func HashByte(o interface{}) []byte {
 	h := sha256.New()
-	h.Write([]byte(fmt.Sprintf("%v", o)))
+	fmt.Fprintf(h, "%v", o)
+
 	return h.Sum(nil)
 }
 
@@ -478,10 +510,12 @@ func StructToStringJSON(s interface{}) (string, error) {
 	if s == nil {
 		return "", nil
 	}
+
 	out, err := json.Marshal(s)
 	if err != nil {
 		return "", err
 	}
+
 	return string(out), nil
 }
 
@@ -489,6 +523,7 @@ func StringToStructJSON(s string, i interface{}) error {
 	if s == "" {
 		return nil
 	}
+
 	return json.Unmarshal([]byte(s), i)
 }
 
@@ -496,8 +531,11 @@ func StructToStringGob(s interface{}) (string, error) {
 	if s == nil {
 		return "", nil
 	}
+
 	var buf bytes.Buffer
+
 	err := gob.NewEncoder(&buf).Encode(s)
+
 	return buf.String(), err
 }
 
@@ -505,7 +543,8 @@ func StringToStructGob(s string, i interface{}) error {
 	if s == "" {
 		return nil
 	}
-	return gob.NewDecoder(bytes.NewBuffer([]byte(s))).Decode(i)
+
+	return gob.NewDecoder(bytes.NewBufferString(s)).Decode(i)
 }
 
 func FirstNameFromFullName(name string) string {
@@ -513,17 +552,20 @@ func FirstNameFromFullName(name string) string {
 	if len(n) == 0 {
 		return ""
 	}
+
 	return n[0]
 }
 
 func FirstAndLastNameFromFullName(name string) (string, string) {
 	name = strings.TrimSpace(name)
+
 	n := strings.Split(name, " ")
 	if len(n) == 0 {
 		return "", ""
 	}
 
 	var lastNameParts []string
+
 	for i := range n {
 		n[i] = strings.TrimSpace(n[i])
 		if i > 0 && n[i] != "" {
@@ -534,7 +576,7 @@ func FirstAndLastNameFromFullName(name string) (string, string) {
 	return n[0], strings.Join(lastNameParts, " ")
 }
 
-// ConsiderNonEmpty returns first param if it's not empty, second otherwise
+// ConsiderNonEmpty returns first param if it's not empty, second otherwise.
 func ConsiderNonEmpty(str string, def string) string {
 	if str != "" {
 		return str
@@ -543,7 +585,7 @@ func ConsiderNonEmpty(str string, def string) string {
 	return def
 }
 
-// LinkedinURLCleaner returns clean url with only scheme, hostname, and the path
+// LinkedinURLCleaner returns clean url with only scheme, hostname, and the path.
 var LinkedinURLCleaner = func(rawUrl string) string {
 	cleanUrl, err := LinkedinURLCleanerErr(rawUrl, false)
 	if err != nil {
@@ -572,25 +614,28 @@ func LinkedinURLCleanerErr(rawUrl string, escapeHandle bool) (string, error) {
 	}
 
 	urlArr = append(urlArr, handle)
+
 	return strings.Join(urlArr, "/"), nil
 }
 
 // ExtractHostAndPath takes a string containing a URL, and returns another string with the same URL without
 // the scheme (http/https), the www. subdomain and any trailing /
-// If the provided string cannot be parsed as URL, it gets returned without any trailing /
+// If the provided string cannot be parsed as URL, it gets returned without any trailing /.
 func ExtractHostAndPath(fullURL string) string {
 	urlWithoutTrailingSlash, _ := strings.CutSuffix(fullURL, "/")
+
 	parsedURL, err := url.Parse(urlWithoutTrailingSlash)
 	if err != nil {
 		return urlWithoutTrailingSlash
 	}
 
 	host, _ := strings.CutPrefix(parsedURL.Host, "www.")
+
 	return host + parsedURL.Path
 }
 
 // GenerateURLCombinations takes a string containing a URL, and returns an array with all different formats
-// that same URL could take while remaining valid. The function does not check if the provided string is an actual URL
+// that same URL could take while remaining valid. The function does not check if the provided string is an actual URL.
 func GenerateURLCombinations(fullURL string) []string {
 	if fullURL == "" {
 		return []string{}
@@ -607,15 +652,16 @@ func GenerateURLCombinations(fullURL string) []string {
 		"https://" + hostAndPath,                // https
 		"http://" + hostAndPath,                 // http
 	}
+
 	return combinations
 }
 
-// TwitterURLBuilder builds Twitter profile URL from username
+// TwitterURLBuilder builds Twitter profile URL from username.
 var TwitterURLBuilder = func(username string) string {
 	return "https://twitter.com/" + username
 }
 
-// MatchLinkedinURL checks if provided URLs are matching
+// MatchLinkedinURL checks if provided URLs are matching.
 func MatchLinkedinURL(url1, url2 string) bool {
 	// Delete trailing slash
 	url1 = strings.TrimRight(url1, "/")
@@ -633,14 +679,16 @@ func MatchLIURLByIDOrHandle(s string, idOrHandle string) bool {
 
 	urlRegex := `^(?:https?:\/\/)?(?:www\.)?linkedin\.com.*?\b` + idOrHandle + `\b`
 	reURL := regexp.MustCompile(urlRegex)
+
 	return reURL.MatchString(s)
 }
 
-// TruncateString truncates given string to given length after removing emojis
+// TruncateString truncates given string to given length after removing emojis.
 func TruncateString(str string, length int) string {
 	if str == "" {
 		return ""
 	}
+
 	str = allEmojisRe.ReplaceAllString(str, "") // Length of emojis are not consistent between browsers/langs, so better remove all first
 
 	r := []rune(str)
@@ -653,10 +701,11 @@ func TruncateString(str string, length int) string {
 
 func ExtractNumbersFromString(str string) string {
 	nums := reNum.FindAllString(str, -1)
+
 	return strings.Join(nums, "")
 }
 
-// ConvertMDToHTML converts Markdown syntax to HTML
+// ConvertMDToHTML converts Markdown syntax to HTML.
 func ConvertMDToHTML(txt string) string {
 	if len(txt) == 0 {
 		return txt
@@ -671,16 +720,20 @@ func ConvertMDToHTML(txt string) string {
 			parser.WithAutoHeadingID(),
 		),
 	)
+
 	var buf bytes.Buffer
-	if err := md.Convert([]byte(txt), &buf); err != nil {
+
+	err := md.Convert([]byte(txt), &buf)
+	if err != nil {
 		logger.Log(context.Background()).Err(err).Error("Failed to convert MD to HTML")
+
 		return txt
 	}
 
 	return buf.String()
 }
 
-// ConvertHTMLToMD converts HTML to Markdown syntax
+// ConvertHTMLToMD converts HTML to Markdown syntax.
 func ConvertHTMLToMD(html, domain string) string {
 	if len(html) == 0 {
 		return html
@@ -700,6 +753,7 @@ func ConvertHTMLToMD(html, domain string) string {
 			Filter: []string{"div"},
 			Replacement: func(content string, selec *goquery.Selection, opt *md.Options) *string {
 				content = strings.TrimSpace(content)
+
 				return md.String("\n" + content + "\n")
 			},
 		},
@@ -714,22 +768,25 @@ func ConvertHTMLToMD(html, domain string) string {
 	markdown, err := converter.ConvertString(html)
 	if err != nil {
 		logger.Log(context.Background()).Err(err).Error("Failed to convert HTML to MD")
+
 		return html
 	}
 
 	return markdown
 }
 
-// ExtractPlanInfo returns plan name and plan interval from plan id
-func ExtractPlanInfo(planID string) (planName string, planInterval string) {
+// ExtractPlanInfo returns plan name and plan interval from plan id.
+func ExtractPlanInfo(planID string) (string, string) {
+	var planName, planInterval string
 	// Use the regular expressions to extract the plan name and plan interval from the plan ID string
 	planInterval = rePlanInterval.FindString(planID)
+
 	planName = rePlanName.FindString(planID)
 	if planName == "entreprise" {
 		planName = "enterprise"
 	}
 
-	return
+	return planName, planInterval
 }
 
 func AddPrefixIfMissing(str, prefix string) string {
@@ -746,6 +803,7 @@ func ContainsIgnoreCase(dataMap map[string]string, target string) bool {
 			return true
 		}
 	}
+
 	return false
 }
 
@@ -753,6 +811,7 @@ func GetNewValueIfEmpty(currentValue *string, newValue *string) *string {
 	if currentValue == nil || *currentValue == "" {
 		return newValue
 	}
+
 	return currentValue
 }
 
@@ -760,6 +819,7 @@ func GetErrorString(err error) string {
 	if err != nil {
 		return err.Error()
 	}
+
 	return ""
 }
 
@@ -788,7 +848,7 @@ func getRedirectedDomain(url string) (string, error) {
 		},
 	}
 
-	resp, err := client.Head(url)
+	resp, err := client.Head(url) //nolint:noctx
 	if err != nil {
 		return "", fmt.Errorf("failed to get redirection URL for %s: %w", url, err)
 	}
@@ -800,6 +860,7 @@ func getRedirectedDomain(url string) (string, error) {
 	}
 
 	redirectURL := resp.Header.Get("Location")
+
 	domain, err := DomainFromURLNoFiltering(redirectURL)
 	if err != nil {
 		return "", fmt.Errorf("failed to get domain from URL %s: %w", redirectURL, err)
@@ -814,10 +875,10 @@ var knownDomains = map[string]string{
 	"goo.gle": "google",
 }
 
-// Abbreviations which we don't want in contact first or last names
+// Abbreviations which we don't want in contact first or last names.
 var abbrvs = "PH.D.|PHD|MD|CPA|CMA|PROF|PR|MBA|PHR|MA|BFA|PMP|MSM|TMP|RN|CFRE|PLS|MSW|CEC|HCS|CFP|AAMS|CLU|ChFC|M.P.A.|MLEC|MAQP|MSHR|SHRM-SCP|MG|MS|CSP|CAS|MAS|LDN|LPN|DC|JR|SR|CIR|A.C.C.|M.Ed.|M.A.I.|AI-GRS|JD|PE|CCP|CAA|LUTCF|FSS|MHR|FACS|MHA|PT|DPT|CDAL|CVM|LPC|CIC|SIOR|CPM|GC|CHHC|AADP|MPA|PE|BASI|CFRE|CMPE|FACHE|CAPS|CEPA|MSOM|IPMA-SCP|CME|ITIL|PMA|DR|II|III|IV|FRSA|F.R.S.A|LL.M.|CFA|MFE|CXAP"
 
-// Abbreviations which we don't want in companyName
+// Abbreviations which we don't want in companyName.
 var companyAbbrvs = []string{
 	"A/S", "AG", "AB", "AE", "ApS", "AS", "BV", "Co", "Corp", "CV", "EEIG", "GmbH", "Inc", "K/S", "Ltd", "Oy", "PLC",
 	"Pty Ltd", "SE", "SP", "SRL", "KGaA", "LLP", "SARL", "SàRL", "SCE", "SCOP", "SCEA", "SNC", "SOCIMI",
@@ -846,25 +907,27 @@ var (
 	reLinkedinType = regexp.MustCompile(`linkedin\.com\/(pub|in|profile|company|school)\/([^\/\ ?]+)`)
 	reHandle       = regexp.MustCompile(`^[\p{L}0-9-]+(?:-[\p{L}0-9]+)*$`)
 
-	// Remove dots, commas, and spaces from the beginning and end of the string
+	// Remove dots, commas, and spaces from the beginning and end of the string.
 	reRemove = regexp.MustCompile(`^[.,\s]+|[.,\s]+$`)
 
-	// Remove abbreviations with dots
+	// Remove abbreviations with dots.
 	reRemoveAbbreviationsWithDots = regexp.MustCompile(fmt.Sprintf(`(?i)\b%s\b`,
 		strings.ReplaceAll(strings.Join(companyAbbrvsWithDots, "|"), ".", "\\.")))
 
-	// Remove abbreviations without dots
+	// Remove abbreviations without dots.
 	reRemoveAbbreviationsWithoutDots = regexp.MustCompile(`(?i)([ ]|^)(` + strings.Join(companyAbbrvs, "|") + `)($|\.|\,|\b)`)
 )
 
 func removeNonAlphanumericCharacters(s string) string {
 	var result strings.Builder
-	for i := 0; i < len(s); i++ {
+
+	for i := range len(s) {
 		b := s[i]
 		if ('a' <= b && b <= 'z') || ('A' <= b && b <= 'Z') || ('0' <= b && b <= '9') {
 			result.WriteByte(b)
 		}
 	}
+
 	return result.String()
 }
 
@@ -908,9 +971,11 @@ func getCountry(ctx context.Context, location string) (gountries.Country, error)
 	loc = strings.ToLower(loc)
 
 	query := gountries.New()
+
 	ct, err := query.FindCountryByName(loc)
 	if err != nil && !strings.Contains(err.Error(), "Could not find country with name") {
 		logger.Log(ctx).Err(err).Error("Find country by name")
+
 		return gountries.Country{}, err
 	}
 
@@ -918,6 +983,7 @@ func getCountry(ctx context.Context, location string) (gountries.Country, error)
 		ct, err = query.FindCountryByAlpha(loc)
 		if err != nil {
 			logger.Log(ctx).Err(err).Error("Find country by alpha")
+
 			return gountries.Country{}, err
 		}
 	}
@@ -939,12 +1005,13 @@ func GetLocationWithoutCountry(ctx context.Context, location string) string {
 	return strings.Join(locs[0:len(locs)-1], ",")
 }
 
-func GetCountryNameByAlpha2(ctx context.Context, alpha2 string) (string, error) {
+func GetCountryNameByAlpha2(alpha2 string) (string, error) {
 	if len(alpha2) != 2 {
 		return "", errors.New("code passed is not alpha2")
 	}
 
 	query := gountries.New()
+
 	ct, err := query.FindCountryByAlpha(alpha2)
 	if err != nil {
 		return "", fmt.Errorf("gountries: find country by alpha: %w", err)
@@ -966,10 +1033,11 @@ func IsLinkedInURL(rawUrl string) bool {
 	if rawUrl == "" {
 		return false
 	}
+
 	return reLinkedinURL.MatchString(rawUrl)
 }
 
-// EntityURN converts urn string formatted like `urn:li:fs_salesProfile:(ACwAAAKWZe8BZ8gXVKS6ePAs8I4GWmjW4Tjm-7w,NAME_SEARCH,xqt8)` to URN struct
+// EntityURN converts urn string formatted like `urn:li:fs_salesProfile:(ACwAAAKWZe8BZ8gXVKS6ePAs8I4GWmjW4Tjm-7w,NAME_SEARCH,xqt8)` to URN struct.
 func EntityURN(s string) (URN, error) {
 	if s == "" {
 		return URN{}, errors.New("empty URN")
@@ -983,6 +1051,7 @@ func EntityURN(s string) (URN, error) {
 	lastSegment := a[len(a)-1]
 
 	re := regexp.MustCompile(`\((.*?)\)`) // urn:li:fs_salesProfile:(ACwAAAJlc6wBYdHGFmVJDHu,NAME_SEARCH,ij9X)
+
 	matches := re.FindStringSubmatch(lastSegment)
 	if len(matches) == 0 {
 		return URN{}, errors.New("invalid URN format")

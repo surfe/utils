@@ -9,6 +9,7 @@ func TextToStringPointer(str pgtype.Text) *string {
 	if !str.Valid {
 		return nil
 	}
+
 	return &str.String
 }
 
@@ -18,6 +19,7 @@ func Int4ToPointer(num pgtype.Int4) *int {
 	}
 
 	n := int(num.Int32)
+
 	return &n
 }
 
@@ -34,5 +36,6 @@ func UUIDsToPgUUIDs(ids []uuid.UUID) []pgtype.UUID {
 	for _, id := range ids {
 		uuids = append(uuids, pgtype.UUID{Bytes: id, Valid: true})
 	}
+
 	return uuids
 }

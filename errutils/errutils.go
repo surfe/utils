@@ -6,6 +6,7 @@ func RootCause(err error) error {
 		if !ok {
 			return err
 		}
+
 		err = e.Unwrap()
 		if err == nil {
 			return nil

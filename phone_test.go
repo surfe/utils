@@ -3,7 +3,7 @@ package utils
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestIsPersonalPhone(t *testing.T) {
@@ -23,7 +23,7 @@ func TestIsPersonalPhone(t *testing.T) {
 		t.Run(tt.phone, func(t *testing.T) {
 			t.Parallel()
 
-			assert.Equal(t, tt.expected, IsPersonalPhone(tt.phone))
+			require.Equal(t, tt.expected, IsPersonalPhone(tt.phone))
 		})
 	}
 }

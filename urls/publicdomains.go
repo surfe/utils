@@ -4,9 +4,10 @@ import (
 	"strings"
 )
 
-// IsPublicDomain checks if domain starts with known public (social media, website builder) domains
+// IsPublicDomain checks if domain starts with known public (social media, website builder) domains.
 func IsPublicDomain(domain string) bool {
 	var pd []string
+
 	pd = append(pd, websiteBuilders...)
 	pd = append(pd, socialMediaDomains...)
 
@@ -19,7 +20,7 @@ func IsPublicDomain(domain string) bool {
 	return false
 }
 
-// IsURLShortenerDomain checks if domain is a known url shortener domain
+// IsURLShortenerDomain checks if domain is a known url shortener domain.
 func IsURLShortenerDomain(domain string) bool {
 	return urlShortenerDomains[domain]
 }

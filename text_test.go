@@ -5,7 +5,6 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -131,8 +130,8 @@ func TestLinkedinURLCleanerErr(t *testing.T) {
 			t.Parallel()
 
 			result, err := LinkedinURLCleanerErr(tt.input, tt.escapeHandle)
-			assert.Equal(t, tt.want, result)
-			assert.Equal(t, tt.wantErr, err)
+			require.Equal(t, tt.want, result)
+			require.Equal(t, tt.wantErr, err)
 		})
 	}
 }
@@ -212,7 +211,7 @@ func TestSanitizeForSOQL(t *testing.T) {
 			t.Parallel()
 
 			res := SanitizeForSOQL(tt.str)
-			assert.Equal(t, tt.want, res)
+			require.Equal(t, tt.want, res)
 		})
 	}
 }
@@ -275,7 +274,7 @@ func TestDomainFromURL(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			assert.Equal(t, tt.want, DomainFromURL(tt.input))
+			require.Equal(t, tt.want, DomainFromURL(tt.input))
 		})
 	}
 }
@@ -391,11 +390,12 @@ func TestDomainFromURLNoFiltering(t *testing.T) {
 
 			domain, err := DomainFromURLNoFiltering(tt.input)
 			if !tt.hasErr {
-				assert.Nil(t, err)
+				require.NoError(t, err)
 			} else {
-				assert.NotNil(t, err)
+				require.Error(t, err)
 			}
-			assert.Equal(t, tt.want, domain)
+
+			require.Equal(t, tt.want, domain)
 		})
 	}
 }
@@ -443,7 +443,7 @@ func TestFormatDomainURL(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			assert.Equal(t, tt.want, FormatDomainURL(tt.input))
+			require.Equal(t, tt.want, FormatDomainURL(tt.input))
 		})
 	}
 }
@@ -491,7 +491,7 @@ func TestRemoveQueryParams(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			assert.Equal(t, tt.want, RemoveQueryParams(tt.input))
+			require.Equal(t, tt.want, RemoveQueryParams(tt.input))
 		})
 	}
 }
@@ -516,7 +516,7 @@ func TestConvertMDToHTML_ConvertHTMLToMD_Compatibility(t *testing.T) {
 
 			html := ConvertMDToHTML(tt.text)
 			md := ConvertHTMLToMD(html, "")
-			assert.Equal(t, tt.want, md)
+			require.Equal(t, tt.want, md)
 		})
 	}
 }
@@ -575,7 +575,7 @@ func TestURNExtractor(t *testing.T) {
 			t.Parallel()
 
 			got := URNExtractor(tt.input)
-			assert.Equal(t, tt.want, got)
+			require.Equal(t, tt.want, got)
 		})
 	}
 }
@@ -604,8 +604,8 @@ func TestToValidEmail(t *testing.T) {
 			t.Parallel()
 
 			result, got := ToValidEmail(tt.email)
-			assert.Equal(t, tt.want, got)
-			assert.Equal(t, tt.email, result)
+			require.Equal(t, tt.want, got)
+			require.Equal(t, tt.email, result)
 		})
 	}
 }
@@ -634,7 +634,7 @@ func TestDomainFromEmail(t *testing.T) {
 			t.Parallel()
 
 			result := DomainFromEmail(tt.email)
-			assert.Equal(t, tt.domain, result)
+			require.Equal(t, tt.domain, result)
 		})
 	}
 }
@@ -690,7 +690,7 @@ func TestSameDomainsl(t *testing.T) {
 			t.Parallel()
 
 			result := SameDomains(tt.linkedinDomain, tt.crmDomain)
-			assert.Equal(t, tt.result, result)
+			require.Equal(t, tt.result, result)
 		})
 	}
 }
@@ -728,8 +728,8 @@ func TestRemoveAccents(t *testing.T) {
 			t.Parallel()
 
 			result, err := RemoveAccents(tt.input)
-			assert.Equal(t, tt.want, result)
-			assert.Equal(t, tt.wantErr, err)
+			require.Equal(t, tt.want, result)
+			require.Equal(t, tt.wantErr, err)
 		})
 	}
 }
@@ -767,7 +767,7 @@ func TestMatchLinkedinURL(t *testing.T) {
 			t.Parallel()
 
 			res := MatchLinkedinURL(tt.url1, tt.url2)
-			assert.Equal(t, tt.want, res)
+			require.Equal(t, tt.want, res)
 		})
 	}
 }
@@ -829,8 +829,8 @@ func TestExtractPlanInfo(t *testing.T) {
 			t.Parallel()
 
 			resPlanName, resPlanInterval := ExtractPlanInfo(tt.planID)
-			assert.Equal(t, tt.planName, resPlanName)
-			assert.Equal(t, tt.planInterval, resPlanInterval)
+			require.Equal(t, tt.planName, resPlanName)
+			require.Equal(t, tt.planInterval, resPlanInterval)
 		})
 	}
 }
@@ -884,7 +884,7 @@ func TestURLHostnameExtractor(t *testing.T) {
 			t.Parallel()
 
 			res := URLHostnameExtractor(tt.str)
-			assert.Equal(t, tt.want, res)
+			require.Equal(t, tt.want, res)
 		})
 	}
 }
@@ -957,8 +957,9 @@ func Test_SimplifyName(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
+
 			n := SimplifyName(tt.given)
-			assert.Equal(t, tt.want, n)
+			require.Equal(t, tt.want, n)
 		})
 	}
 }
@@ -1082,8 +1083,9 @@ func Test_SimplifyCompanyName(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
+
 			n := SimplifyCompanyName(tt.given)
-			assert.Equal(t, tt.want, n)
+			require.Equal(t, tt.want, n)
 		})
 	}
 }
@@ -1120,15 +1122,15 @@ func TestURLProfileExtract(t *testing.T) {
 	for _, tt := range tests {
 		t.Run("Person LI URL - "+tt.name, func(t *testing.T) {
 			t.Parallel()
-			assert.Equal(t, tt.wantHandle, URLProfileExtract("https://www.linkedin.com/in/"+tt.handle))
+			require.Equal(t, tt.wantHandle, URLProfileExtract("https://www.linkedin.com/in/"+tt.handle))
 		})
 		t.Run("Company LI URL - "+tt.name, func(t *testing.T) {
 			t.Parallel()
-			assert.Equal(t, tt.wantHandle, URLProfileExtract("https://www.linkedin.com/company/"+tt.handle))
+			require.Equal(t, tt.wantHandle, URLProfileExtract("https://www.linkedin.com/company/"+tt.handle))
 		})
 		t.Run("School LI URL - "+tt.name, func(t *testing.T) {
 			t.Parallel()
-			assert.Equal(t, tt.wantHandle, URLProfileExtract("https://www.linkedin.com/school/"+tt.handle))
+			require.Equal(t, tt.wantHandle, URLProfileExtract("https://www.linkedin.com/school/"+tt.handle))
 		})
 	}
 }
@@ -1190,7 +1192,7 @@ func TestExtractHostAndPath(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			assert.Equal(t, tt.wantURL, ExtractHostAndPath(tt.fullURL))
+			require.Equal(t, tt.wantURL, ExtractHostAndPath(tt.fullURL))
 		})
 	}
 }
@@ -1235,7 +1237,7 @@ func TestGenerateURLCombinations(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			assert.ElementsMatch(t, tt.want, GenerateURLCombinations(tt.url))
+			require.ElementsMatch(t, tt.want, GenerateURLCombinations(tt.url))
 		})
 	}
 }
@@ -1344,6 +1346,7 @@ func TestMatchLIURLByIDOrHandle(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
+
 			if output := MatchLIURLByIDOrHandle(tt.s, tt.idOrHandle); output != tt.expected {
 				t.Errorf("Test failed for %s %s, expected output %t, but got %t", tt.s, tt.idOrHandle, tt.expected, output)
 			}
@@ -1378,8 +1381,9 @@ func TestLooseString(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
+
 			got := LooseString(tt.str)
-			assert.Equal(t, tt.want, got)
+			require.Equal(t, tt.want, got)
 		})
 	}
 }
@@ -1411,20 +1415,21 @@ func TestSanitizedLooseString(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
+
 			got := SanitizedLooseString(tt.str)
-			assert.Equal(t, tt.want, got)
+			require.Equal(t, tt.want, got)
 		})
 	}
 }
 
 func BenchmarkLooseString(b *testing.B) {
-	for i := 0; i < b.N; i++ {
+	for range b.N {
 		LooseString(" Sirąj Uddiń--Chowdhury\n & Rußel (CV Doctor)?   _-")
 	}
 }
 
 func BenchmarkSanitizedLooseString(b *testing.B) {
-	for i := 0; i < b.N; i++ {
+	for range b.N {
 		SanitizedLooseString(" Sirąj<br> Uddiń--Chowdhury\n & Rußel (CV Doctor)?   _-")
 	}
 }
@@ -1464,7 +1469,7 @@ func TestMaskStringWithAsterisks(t *testing.T) {
 			t.Parallel()
 
 			actual := MaskStringWithAsterisks(tt.str)
-			assert.Equal(t, tt.want, actual)
+			require.Equal(t, tt.want, actual)
 		})
 	}
 }
@@ -1527,8 +1532,8 @@ func TestFirstAndLastNameFromFullName(t *testing.T) {
 			t.Parallel()
 
 			actualFirstName, actualLastName := FirstAndLastNameFromFullName(tt.input)
-			assert.Equal(t, tt.expectedFirstName, actualFirstName)
-			assert.Equal(t, tt.expectedLastName, actualLastName)
+			require.Equal(t, tt.expectedFirstName, actualFirstName)
+			require.Equal(t, tt.expectedLastName, actualLastName)
 		})
 	}
 }
@@ -1562,11 +1567,11 @@ func TestGetRedirectedDomain(t *testing.T) {
 
 			domain, err := getRedirectedDomain(tt.url)
 			if tt.expectedError == "" {
-				assert.NoError(t, err)
-				assert.Equal(t, tt.expectedDomain, domain)
+				require.NoError(t, err)
+				require.Equal(t, tt.expectedDomain, domain)
 			} else {
-				assert.Error(t, err)
-				assert.Contains(t, err.Error(), tt.expectedError)
+				require.Error(t, err)
+				require.Contains(t, err.Error(), tt.expectedError)
 			}
 		})
 	}
@@ -1637,7 +1642,7 @@ func TestExtractLinkedInSlug(t *testing.T) {
 			t.Parallel()
 
 			got := ExtractLinkedInSlug(tt.url)
-			assert.Equal(t, tt.slug, got)
+			require.Equal(t, tt.slug, got)
 		})
 	}
 }
@@ -1756,7 +1761,7 @@ func TestTitle(t *testing.T) {
 			t.Parallel()
 
 			got := Title(tt.input)
-			assert.Equal(t, tt.want, got)
+			require.Equal(t, tt.want, got)
 		})
 	}
 }
@@ -1823,13 +1828,14 @@ func TestEntityURN(t *testing.T) {
 			got, err := EntityURN(tt.input)
 
 			if tt.wantErr != "" {
-				assert.Error(t, err)
-				assert.Equal(t, tt.wantErr, err.Error())
+				require.Error(t, err)
+				require.Equal(t, tt.wantErr, err.Error())
+
 				return
 			}
 
-			assert.NoError(t, err)
-			assert.Equal(t, tt.want, got)
+			require.NoError(t, err)
+			require.Equal(t, tt.want, got)
 		})
 	}
 }
@@ -1931,8 +1937,9 @@ We are a network.`,
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
+
 			result := SanitizeForDB(tt.input)
-			assert.Equal(t, tt.expected, result)
+			require.Equal(t, tt.expected, result)
 		})
 	}
 }
@@ -1975,8 +1982,9 @@ func TestSalesCompanyURLFromURN(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
+
 			result := SalesCompanyURLFromURN(tt.urn)
-			assert.Equal(t, tt.expected, result, "salesCompanyURLFromURN(%s) result should match expected value", tt.urn)
+			require.Equal(t, tt.expected, result, "salesCompanyURLFromURN(%s) result should match expected value", tt.urn)
 		})
 	}
 }
@@ -2008,9 +2016,10 @@ func Test_getCountry_FranceVariants(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.location, func(t *testing.T) {
 			t.Parallel()
+
 			ct, err := getCountry(context.Background(), tc.location)
 			require.NoError(t, err, "getCountry should not error for %q", tc.location)
-			assert.Equal(t, "France", ct.Name.Common, "ct.Name.Common should be 'France' for %q", tc.location)
+			require.Equal(t, "France", ct.Name.Common, "ct.Name.Common should be 'France' for %q", tc.location)
 		})
 	}
 }

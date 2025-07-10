@@ -3,7 +3,7 @@ package utils
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 type TestStructA struct {
@@ -25,6 +25,7 @@ func TestCountNonEmptyFields(t *testing.T) {
 
 	t.Run("Struct with non-empty fields", func(t *testing.T) {
 		t.Parallel()
+
 		trueValue := true
 		testStruct := TestStructA{
 			Field1: "value",
@@ -33,11 +34,12 @@ func TestCountNonEmptyFields(t *testing.T) {
 			Field4: []string{"item1", "item2"},
 		}
 		result := CountNonEmptyFields(testStruct)
-		assert.Equal(t, 4, result)
+		require.Equal(t, 4, result)
 	})
 
 	t.Run("Struct with some empty fields", func(t *testing.T) {
 		t.Parallel()
+
 		testStruct := TestStructA{
 			Field1: "",
 			Field2: 0,
@@ -45,11 +47,12 @@ func TestCountNonEmptyFields(t *testing.T) {
 			Field4: []string{},
 		}
 		result := CountNonEmptyFields(testStruct)
-		assert.Equal(t, 0, result)
+		require.Equal(t, 0, result)
 	})
 
 	t.Run("Struct with pointer and map fields", func(t *testing.T) {
 		t.Parallel()
+
 		intValue := 10
 		testStruct := TestStructB{
 			Field1: "non-empty",
@@ -58,18 +61,20 @@ func TestCountNonEmptyFields(t *testing.T) {
 			Field4: 0.0,
 		}
 		result := CountNonEmptyFields(testStruct)
-		assert.Equal(t, 3, result)
+		require.Equal(t, 3, result)
 	})
 
 	t.Run("Struct with all fields empty", func(t *testing.T) {
 		t.Parallel()
+
 		testStruct := TestStructB{}
 		result := CountNonEmptyFields(testStruct)
-		assert.Equal(t, 0, result)
+		require.Equal(t, 0, result)
 	})
 
 	t.Run("Struct with an empty list", func(t *testing.T) {
 		t.Parallel()
+
 		testStruct := TestStructA{
 			Field1: "",
 			Field2: 0,
@@ -77,6 +82,6 @@ func TestCountNonEmptyFields(t *testing.T) {
 			Field4: []string{},
 		}
 		result := CountNonEmptyFields(testStruct)
-		assert.Equal(t, 0, result)
+		require.Equal(t, 0, result)
 	})
 }

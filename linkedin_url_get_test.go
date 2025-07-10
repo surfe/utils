@@ -3,7 +3,7 @@ package utils
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 type Org struct {
@@ -11,12 +11,13 @@ type Org struct {
 	LIURL string
 }
 
-func (o Org) GetLinkedinURL(key string) string {
+func (o Org) GetLinkedinURL(key string) string { //nolint:unparam
 	return o.LIURL
 }
 
 func TestRemoveWithEmptyOrNotEqualLinkedinURL_NonEmptyLinkedInURL(t *testing.T) {
 	t.Parallel()
+
 	tests := []struct {
 		name string
 		orgs []Org
@@ -111,20 +112,23 @@ func TestRemoveWithEmptyOrNotEqualLinkedinURL_NonEmptyLinkedInURL(t *testing.T) 
 	for _, tt := range tests {
 		t.Run("Given a linkedInURL without trailing slash - "+tt.name, func(t *testing.T) {
 			t.Parallel()
+
 			got := RemoveWithEmptyOrNotEqualLinkedinURL[Org](tt.orgs, "key", "https://www.linkedin.com/company/surfe")
-			assert.Equal(t, tt.want, got)
+			require.Equal(t, tt.want, got)
 		})
 
 		t.Run("Given a linkedInURL with trailing slash - "+tt.name, func(t *testing.T) {
 			t.Parallel()
+
 			got := RemoveWithEmptyOrNotEqualLinkedinURL[Org](tt.orgs, "key", "https://www.linkedin.com/company/surfe/")
-			assert.Equal(t, tt.want, got)
+			require.Equal(t, tt.want, got)
 		})
 	}
 }
 
 func TestRemoveWithEmptyOrNotEqualLinkedinURL_EmptyLinkedInURL(t *testing.T) {
 	t.Parallel()
+
 	tests := []struct {
 		name string
 		orgs []Org
@@ -152,8 +156,9 @@ func TestRemoveWithEmptyOrNotEqualLinkedinURL_EmptyLinkedInURL(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
+
 			got := RemoveWithEmptyOrNotEqualLinkedinURL[Org](tt.orgs, "key", "")
-			assert.Equal(t, tt.want, got)
+			require.Equal(t, tt.want, got)
 		})
 	}
 }

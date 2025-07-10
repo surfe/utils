@@ -1,0 +1,70 @@
+version: "2"
+run:
+  go: "1.24"
+
+linters:
+  default: all
+  enable:
+    - wsl_v5
+  disable:
+    - wsl
+    - mnd
+    - gosmopolitan
+    - errchkjson
+    - errcheck
+    - err113
+    - wrapcheck
+    - depguard
+    - exhaustruct
+    - gochecknoglobals
+    - gochecknoinits
+    - godox
+    - interfacebloat
+    - ireturn
+    - musttag
+    - testpackage
+    - varnamelen
+    - revive
+    - lll
+  settings:
+    wsl_v5:
+      allow-first-in-block: true
+      allow-whole-block: false
+      branch-max-lines: 2 
+    cyclop:
+      max-complexity: 20
+    gocritic:
+      enabled-checks:
+        - ruleguard
+      settings:
+        ruleguard:
+          rules: ".buildfiles/ruleguard.go"
+    errcheck:
+      check-type-assertions: true
+      check-blank: true
+      exclude-functions:
+        - io/ioutil.ReadFile
+        - io.Copy(*bytes.Buffer)
+        - io.Copy(os.Stdout)
+    govet:
+      disable:
+        - fieldalignment
+    nakedret:
+      max-func-lines: 1
+    unparam:
+      check-exported: true
+  exclusions:
+    generated: lax
+    rules:
+      - linters:
+          - lll
+          - maintidx
+          - cyclop
+          - dupl
+          - dupword
+          - funlen
+          - musttag
+        path: _test\.go
+
+issues:
+  fix: true

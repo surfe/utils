@@ -74,6 +74,7 @@ func TestCodeToCountryName(t *testing.T) {
 
 func TestLinkedInLocationToCityState(t *testing.T) {
 	t.Parallel()
+
 	tests := []struct {
 		name      string
 		location  string
@@ -194,10 +195,12 @@ func TestLinkedInLocationToCityState(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
+
 			gotCity, gotState := LinkedInLocationToCityState(tt.location)
 			if gotCity != tt.wantCity {
 				t.Errorf("LinkedInLocationToCityState() city = %v, want %v", gotCity, tt.wantCity)
 			}
+
 			if gotState != tt.wantState {
 				t.Errorf("LinkedInLocationToCityState() state = %v, want %v", gotState, tt.wantState)
 			}

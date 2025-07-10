@@ -1,3 +1,4 @@
+//nolint:errcheck
 package utils
 
 import (
@@ -43,6 +44,7 @@ func Bool(x *bool) bool {
 	if x == nil {
 		return false
 	}
+
 	return *x
 }
 
@@ -50,6 +52,7 @@ func String(x *string) string {
 	if x == nil {
 		return ""
 	}
+
 	return *x
 }
 
@@ -57,6 +60,7 @@ func Int64(x *int64) int64 {
 	if x == nil {
 		return 0
 	}
+
 	return *x
 }
 
@@ -64,12 +68,14 @@ func Int(x *int) int {
 	if x == nil {
 		return 0
 	}
+
 	return *x
 }
 
 func GetSafeType[T any](ptr *T) T {
 	if ptr == nil {
 		var zero T
+
 		return zero
 	}
 
@@ -78,16 +84,19 @@ func GetSafeType[T any](ptr *T) T {
 
 func Atoi(s string) int {
 	i, _ := strconv.Atoi(s)
+
 	return i
 }
 
 func Atof(s string) float64 {
 	f, _ := strconv.ParseFloat(s, 64)
+
 	return f
 }
 
 func IsEmptyType[T comparable](t T) bool {
 	var empty T
+
 	return t == empty
 }
 
@@ -105,6 +114,7 @@ func UnsafeObjectIDHex(s string) primitive.ObjectID {
 	if err != nil {
 		return primitive.NilObjectID
 	}
+
 	return oid
 }
 
@@ -113,11 +123,12 @@ func SafeString(x interface{}) string {
 		return ""
 	}
 
-	switch reflect.TypeOf(x).Kind() {
+	switch reflect.TypeOf(x).Kind() { //nolint:exhaustive
 	case reflect.Ptr:
 		if reflect.ValueOf(x).IsNil() {
 			return ""
 		}
+
 		return fmt.Sprint(reflect.Indirect(reflect.ValueOf(x)))
 	case reflect.Map, reflect.Array, reflect.Chan, reflect.Slice:
 		if reflect.ValueOf(x).IsNil() {
@@ -131,8 +142,10 @@ func SafeString(x interface{}) string {
 }
 
 func GenerateCode(n int) string {
-	var letterRunes = []rune("0123456789")
-	var maxVal = big.NewInt(int64(len(letterRunes)))
+	var (
+		letterRunes = []rune("0123456789")
+		maxVal      = big.NewInt(int64(len(letterRunes)))
+	)
 
 	b := make([]rune, n)
 
@@ -140,16 +153,21 @@ func GenerateCode(n int) string {
 		bn, _ := rand.Int(rand.Reader, maxVal)
 		b[i] = letterRunes[bn.Int64()]
 	}
+
 	return string(b)
 }
 
-func ToStripeError(err error) (e stripe.Error) {
+func ToStripeError(err error) stripe.Error {
+	var e stripe.Error
+
 	_ = json.Unmarshal([]byte(err.Error()), &e)
-	return
+
+	return e
 }
 
 func Transfer(from, to interface{}) {
 	x, _ := json.Marshal(from)
+
 	err := json.Unmarshal(x, to)
 	if err != nil {
 		logger.Log(context.Background()).Err(err).Error("Could not unmarshal")
@@ -162,7 +180,7 @@ func FindLooseStringInSlice(slice []string, item string) int {
 	})
 }
 
-// EqualsLooseString compares two strings after some clean-up, case in-sensitively
+// EqualsLooseString compares two strings after some clean-up, case in-sensitively.
 func EqualsLooseString(s, t string) bool {
 	return strings.EqualFold(LooseString(s), LooseString(t))
 }
@@ -191,6 +209,7 @@ func GetStringSlice(f interface{}) []string {
 		for _, val := range f {
 			res = append(res, fmt.Sprint(val))
 		}
+
 		return res
 	default:
 		return []string{SafeString(f)}
@@ -202,5 +221,6 @@ func UUIDFromString(str string) uuid.UUID {
 	buf, _ := hex.DecodeString(str)
 	uuid := [16]byte{}
 	copy(uuid[:], buf)
+
 	return uuid
 }

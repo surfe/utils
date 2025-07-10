@@ -23,6 +23,7 @@ func TimeToStringOrEmpty(t time.Time) string {
 	if t.IsZero() {
 		return ""
 	}
+
 	return t.Format(time.DateTime)
 }
 
@@ -74,6 +75,7 @@ func UnixMsecTimeToDate(s string) string {
 	if err != nil {
 		return ""
 	}
+
 	t := TimestampToTime(timeInMsec, true)
 
 	return t.Format("01/02/2006")
@@ -89,14 +91,16 @@ func DMYtoUnixMsec(s string) string {
 		return ""
 	}
 
-	return fmt.Sprint(t.UnixMilli())
+	return strconv.FormatInt(t.UnixMilli(), 10)
 }
 
 func TimeToStringPtr(t *time.Time) *string {
 	if t == nil {
 		return nil
 	}
+
 	s := t.Format(time.DateTime)
+
 	return &s
 }
 
@@ -104,7 +108,9 @@ func TimeWithTimezoneToStringPtr(t *time.Time) *string {
 	if t == nil {
 		return nil
 	}
+
 	s := t.Format(time.RFC3339)
+
 	return &s
 }
 
@@ -113,6 +119,7 @@ func TimeToTimestamp(t time.Time, ms bool) int64 {
 	if ms {
 		ts *= 1000
 	}
+
 	return ts
 }
 
@@ -120,20 +127,24 @@ func TimeToTimestampPtr(t *time.Time, ms bool) *int64 {
 	if t == nil {
 		return nil
 	}
+
 	ts := t.Unix()
 	if ms {
 		ts *= 1000
 	}
+
 	return &ts
 }
 
 func StringToTime(s string) time.Time {
 	t, _ := time.Parse(time.DateTime, s)
+
 	return t
 }
 
 func StringToTime2(s string) time.Time {
 	t, _ := time.Parse(time.DateOnly, s)
+
 	return t
 }
 
@@ -142,16 +153,19 @@ func StringToTime2Safe(s string) *time.Time {
 	if err != nil || t.IsZero() {
 		return nil
 	}
+
 	return &t
 }
 
 func Iso8601ToTime(s string) time.Time {
 	t, _ := time.Parse("2006-01-02T15:04:05-0700", s)
+
 	return t
 }
 
 func Iso8601ZToTime(s string) time.Time {
 	t, _ := time.Parse("2006-01-02T15:04:05Z0700", s)
+
 	return t
 }
 
@@ -159,6 +173,7 @@ func TimestampToTime(ts int64, ms bool) time.Time {
 	if ms {
 		ts /= 1000
 	}
+
 	return time.Unix(ts, 0)
 }
 
@@ -166,12 +181,15 @@ func TimestampToTimePtr(ts *int64, ms bool) *time.Time {
 	if ts == nil {
 		return nil
 	}
+
 	t := TimestampToTime(*ts, ms)
+
 	return &t
 }
 
 func TimestampStrToTime(ts string, ms bool) time.Time {
 	i, _ := strconv.ParseInt(ts, 10, 64)
+
 	return TimestampToTime(i, ms)
 }
 
@@ -188,10 +206,13 @@ func SameDay(date1, date2 time.Time, tz string) bool {
 
 	y1, m1, d1 := date1.In(loc).Date()
 	y2, m2, d2 := date2.In(loc).Date()
+
 	return y1 == y2 && m1 == m2 && d1 == d2
 }
 
-func GetLastWeekRange() (beginningOfWeek, endOfWeek time.Time) {
+func GetLastWeekRange() (time.Time, time.Time) {
+	var beginningOfWeek, endOfWeek time.Time
+
 	lastWeek := time.Now().AddDate(0, 0, -7)
 
 	// Set the start day of the week as Monday
@@ -206,11 +227,12 @@ func DaysPassedSince(t time.Time) int {
 	return int(time.Since(t).Hours() / 24)
 }
 
-// IsSameTimeNoTimezone checks if two dates are roughly equal if no timezone considered
+// IsSameTimeNoTimezone checks if two dates are roughly equal if no timezone considered.
 func IsSameTimeNoTimezone(t1, t2 time.Time) bool {
 	absoluteDiff := math.Abs(t1.Sub(t2).Minutes())
 	minsDiff := math.Mod(absoluteDiff, 60)
 	minsDiff = math.Min(minsDiff, 60-minsDiff)
+
 	return minsDiff <= 2 && absoluteDiff <= 26*60
 }
 
@@ -219,9 +241,11 @@ func DifferenceBetweenTimesToString(a, b time.Time) string {
 	if a.Location() != b.Location() {
 		b = b.In(a.Location())
 	}
+
 	if a.After(b) {
 		a, b = b, a
 	}
+
 	y1, M1, d1 := a.Date()
 	y2, M2, d2 := b.Date()
 
@@ -233,6 +257,7 @@ func DifferenceBetweenTimesToString(a, b time.Time) string {
 	if day < 0 {
 		months--
 	}
+
 	if months < 0 {
 		months += 12
 		years--
@@ -249,6 +274,7 @@ func DifferenceBetweenTimesToString(a, b time.Time) string {
 		if months == 0 {
 			return s
 		}
+
 		s += ", "
 	}
 
@@ -269,8 +295,10 @@ func GetTimezone(ctx context.Context, timezone string) string {
 	loc, err := time.LoadLocation(timezone)
 	if err != nil {
 		logger.Log(ctx).Err(err).Errorf("LoadLocation for %v", timezone)
+
 		return time.UTC.String()
 	}
+
 	if loc != nil {
 		return loc.String()
 	}
@@ -288,6 +316,7 @@ func GetTimeFromLinkedInSentTimeLabelAndUserTimeZone(ctx context.Context, sentTi
 	number := Atoi(ExtractNumbersFromString(sentTimeLabel))
 
 	sentTime := timeNow
+
 	switch {
 	case strings.Contains(sentTimeLabel, "today"):
 		sentTime = timeNow
@@ -318,7 +347,7 @@ func ParseISODuration(s string) (time.Duration, error) {
 
 	s = s[1:]
 	if len(s) == 0 {
-		return 0, fmt.Errorf("invalid date duration format: empty duration")
+		return 0, errors.New("invalid date duration format: empty duration")
 	}
 
 	timePartIndex := strings.Index(s, "T")
@@ -330,7 +359,7 @@ func ParseISODuration(s string) (time.Duration, error) {
 		timePart = s[timePartIndex+1:]
 
 		if len(timePart) == 0 {
-			return 0, fmt.Errorf("invalid time duration format: empty time part")
+			return 0, errors.New("invalid time duration format: empty time part")
 		}
 	}
 
@@ -349,6 +378,7 @@ func ParseISODuration(s string) (time.Duration, error) {
 		if len(timePart) > 0 {
 			return 0, fmt.Errorf("invalid time duration format: %s", timePart)
 		}
+
 		return 0, fmt.Errorf("invalid date duration format: %s", datePart)
 	}
 
@@ -375,6 +405,7 @@ func parseIsoDurationDatePart(datePart string) (float64, float64, float64, float
 			if err != nil {
 				return 0, 0, 0, 0, fmt.Errorf("invalid numeric value in date: %w", err)
 			}
+
 			switch name {
 			case "years":
 				years = value
@@ -411,6 +442,7 @@ func parseIsoDurationTimePart(timePart string) (float64, float64, float64, error
 			if err != nil {
 				return 0, 0, 0, fmt.Errorf("invalid numeric value in time: %w", err)
 			}
+
 			switch name {
 			case "hours":
 				hours = value

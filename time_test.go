@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestDaysUntil(t *testing.T) {
@@ -49,6 +49,7 @@ func TestDaysUntil(t *testing.T) {
 
 func TestUTCTimestampToDateOrDefault(t *testing.T) {
 	t.Parallel()
+
 	tests := []struct {
 		name string
 		args string
@@ -76,7 +77,7 @@ func TestUTCTimestampToDateOrDefault(t *testing.T) {
 			t.Parallel()
 
 			result := UTCTimestampToDateOrDefault(tt.args)
-			assert.Equal(t, tt.want, result)
+			require.Equal(t, tt.want, result)
 		})
 	}
 }
@@ -112,7 +113,7 @@ func TestGetTimezone(t *testing.T) {
 
 			ctx := context.Background()
 			result := GetTimezone(ctx, tc.timezone)
-			assert.Equal(t, tc.expected, result)
+			require.Equal(t, tc.expected, result)
 		})
 	}
 }
@@ -161,9 +162,9 @@ func TestGetTimeFromLinkedInSentTimeLabelAndUserTimeZone(t *testing.T) {
 			result := GetTimeFromLinkedInSentTimeLabelAndUserTimeZone(ctx, tc.sentTimeLabel, "UTC")
 			y1, m1, d1 := tc.expectedTime.Date()
 			y2, m2, d2 := result.Date()
-			assert.Equal(t, y1, y2)
-			assert.Equal(t, m1, m2)
-			assert.Equal(t, d1, d2)
+			require.Equal(t, y1, y2)
+			require.Equal(t, m1, m2)
+			require.Equal(t, d1, d2)
 		})
 	}
 }
@@ -277,13 +278,14 @@ func TestParseISODuration(t *testing.T) {
 			result, err := ParseISODuration(tc.duration)
 
 			if tc.expectError {
-				assert.Error(t, err)
+				require.Error(t, err)
+
 				if tc.errorContains != "" && err != nil {
-					assert.Contains(t, err.Error(), tc.errorContains)
+					require.Contains(t, err.Error(), tc.errorContains)
 				}
 			} else {
-				assert.NoError(t, err)
-				assert.Equal(t, tc.expected, result)
+				require.NoError(t, err)
+				require.Equal(t, tc.expected, result)
 			}
 		})
 	}

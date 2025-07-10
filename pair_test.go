@@ -3,7 +3,7 @@ package utils
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestSortMap(t *testing.T) {
@@ -35,9 +35,8 @@ func TestSortMap(t *testing.T) {
 			t.Parallel()
 
 			got := SortMap(tt.input)
-			if assert.NotNil(t, got) {
-				assert.Equal(t, tt.want, got)
-			}
+			require.NotNil(t, got)
+			require.Equal(t, tt.want, got)
 		})
 	}
 }

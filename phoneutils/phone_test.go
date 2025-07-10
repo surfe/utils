@@ -3,7 +3,7 @@ package phoneutils
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestFormatPhonesAndProviders(t *testing.T) {
@@ -60,13 +60,14 @@ func TestFormatPhonesAndProviders(t *testing.T) {
 			t.Parallel()
 
 			actual := FormatPhonesAndProviders(tt.providers, tt.phones)
-			assert.Equal(t, tt.wanted, actual)
+			require.Equal(t, tt.wanted, actual)
 		})
 	}
 }
 
 func TestClean(t *testing.T) {
 	t.Parallel()
+
 	tests := []struct {
 		name     string
 		input    string
@@ -127,6 +128,7 @@ func TestClean(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
+
 			got := Clean(tt.input)
 			if got != tt.expected {
 				t.Errorf("FormatPhoneNumber(%q) = %q, want %q", tt.input, got, tt.expected)

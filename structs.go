@@ -10,12 +10,13 @@ func CountNonEmptyFields(s interface{}) int {
 	if val.Kind() == reflect.Ptr {
 		val = val.Elem()
 	}
+
 	if val.Kind() != reflect.Struct {
 		return 0
 	}
 
 	// Iterate over fields
-	for i := 0; i < val.NumField(); i++ {
+	for i := range val.NumField() {
 		field := val.Field(i)
 
 		// Skip slices with len(0)
