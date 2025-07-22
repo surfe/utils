@@ -407,6 +407,10 @@ func ExtractLinkedInSlug(s string) string {
 
 // ContactProfileURL creates link with provided ID. Handle, MemberID or SalesNavID will work well with this link.
 func ContactProfileURL(id string) string {
+	if id == "" {
+		return ""
+	}
+
 	return "https://linkedin.com/in/" + id
 }
 
