@@ -96,7 +96,7 @@ func Title(s string) string {
 	return strings.TrimSpace(string(runes))
 }
 
-func DomainFromURL(s string) string {
+func DomainFromURLBypassingShortener(s string) string {
 	if strings.TrimSpace(s) == "" {
 		return ""
 	}
@@ -179,6 +179,12 @@ func DomainFromURLNoFiltering(s string) (string, error) {
 	}
 
 	return u.Domain + "." + u.TLD, nil
+}
+
+func DomainFromURL(s string) string {
+	domain, _ := DomainFromURLNoFiltering(s)
+
+	return domain
 }
 
 func DomainFromEmail(email string) string {
