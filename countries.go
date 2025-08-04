@@ -1,6 +1,8 @@
 package utils
 
 import (
+	"context"
+	"fmt"
 	"slices"
 	"strings"
 
@@ -36,4 +38,31 @@ func IsCountryInEU(country string) bool {
 	}
 
 	return slices.Contains(euCountryCodes, strings.ToLower(country))
+}
+
+// GetCountryAlpha2FromLocation finds the country within a location string and returns:
+// 1. The Alpha 2 ISO code for that country
+// 2. a boolean that denotes whether or not the country was found
+// Examples:
+// - input: "Cairo, Egypt" > output: "EG", true
+// - input: "Some random text" > output: "", false
+func GetCountryAlpha2FromLocation(location string) (string, bool) {
+	var combinedParts string
+	location = strings.ReplaceAll(location, ",", " ")
+	locationParts := strings.Split(location, " ")
+	for _, v := range slices.Backward(locationParts) {
+		v = strings.TrimSpace(v)
+		alpha2 := GetCountryAlpha2(context.Background(), "", v)
+		if alpha2 != "" {
+			return alpha2, true
+		}
+
+		combinedParts = strings.TrimSpace(fmt.Sprintf("%s %s", v, combinedParts))
+		alpha2 = GetCountryAlpha2(context.Background(), "", combinedParts)
+		if alpha2 != "" {
+			return alpha2, true
+		}
+	}
+
+	return "", false
 }
