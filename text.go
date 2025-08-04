@@ -1107,3 +1107,15 @@ func SanitizeForDB(s string) string {
 
 	return builder.String()
 }
+
+// Coalesce returns the first non-empty value or empty if none of the values are not empty
+func Coalesce[T comparable](values ...T) T {
+	for _, v := range values {
+		if !IsEmptyType(v) {
+			return v
+		}
+	}
+
+	var empty T
+	return empty
+}

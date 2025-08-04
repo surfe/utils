@@ -3,6 +3,7 @@ package utils
 import (
 	"context"
 	"errors"
+	"reflect"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -2020,6 +2021,258 @@ func Test_getCountry_FranceVariants(t *testing.T) {
 			ct, err := getCountry(context.Background(), tc.location)
 			require.NoError(t, err, "getCountry should not error for %q", tc.location)
 			require.Equal(t, "France", ct.Name.Common, "ct.Name.Common should be 'France' for %q", tc.location)
+		})
+	}
+}
+
+// TestCoalesce serves as the main entry point for all Coalesce tests.
+// It uses t.Run to group tests by the data type being tested.
+func TestCoalesce(t *testing.T) {
+	t.Parallel()
+
+	t.Run("Strings", testCoalesceForStrings)
+	t.Run("Integers", testCoalesceForIntegers)
+	t.Run("Pointers", testCoalesceForPointers)
+	t.Run("Structs", testCoalesceForStructs)
+}
+
+// testCoalesceForStrings tests the Coalesce function with string types.
+func testCoalesceForStrings(t *testing.T) {
+	t.Parallel()
+
+	testCases := []struct {
+		name     string
+		values   []string
+		expected string
+	}{
+		{
+			name:     "No arguments should return empty string",
+			values:   []string{},
+			expected: "",
+		},
+		{
+			name:     "Single non-empty value",
+			values:   []string{"hello"},
+			expected: "hello",
+		},
+		{
+			name:     "Single empty value",
+			values:   []string{""},
+			expected: "",
+		},
+		{
+			name:     "All empty values should return empty string",
+			values:   []string{"", "", ""},
+			expected: "",
+		},
+		{
+			name:     "First value is non-empty",
+			values:   []string{"first", "second", "third"},
+			expected: "first",
+		},
+		{
+			name:     "Middle value is non-empty",
+			values:   []string{"", "second", "third"},
+			expected: "second",
+		},
+		{
+			name:     "Last value is non-empty",
+			values:   []string{"", "", "third"},
+			expected: "third",
+		},
+		{
+			name:     "All values are non-empty",
+			values:   []string{"eins", "zwei", "drei"},
+			expected: "eins",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			actual := Coalesce(tc.values...)
+			require.Equal(t, tc.expected, actual)
+		})
+	}
+}
+
+// testCoalesceForIntegers tests the Coalesce function with int types.
+func testCoalesceForIntegers(t *testing.T) {
+	t.Parallel()
+
+	testCases := []struct {
+		name     string
+		values   []int
+		expected int
+	}{
+		{
+			name:     "No arguments should return zero",
+			values:   []int{},
+			expected: 0,
+		},
+		{
+			name:     "Single non-zero value",
+			values:   []int{42},
+			expected: 42,
+		},
+		{
+			name:     "Single zero value",
+			values:   []int{0},
+			expected: 0,
+		},
+		{
+			name:     "All zero values should return zero",
+			values:   []int{0, 0, 0},
+			expected: 0,
+		},
+		{
+			name:     "First value is non-zero",
+			values:   []int{100, 200, 300},
+			expected: 100,
+		},
+		{
+			name:     "Middle value is non-zero",
+			values:   []int{0, -50, 100},
+			expected: -50,
+		},
+		{
+			name:     "Last value is non-zero",
+			values:   []int{0, 0, 99},
+			expected: 99,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			actual := Coalesce(tc.values...)
+			require.Equal(t, tc.expected, actual)
+		})
+	}
+}
+
+// testCoalesceForPointers tests the Coalesce function with pointer types (*int).
+func testCoalesceForPointers(t *testing.T) {
+	t.Parallel()
+
+	val1, val2 := 10, 20
+
+	testCases := []struct {
+		name     string
+		values   []*int
+		expected *int
+	}{
+		{
+			name:     "No arguments should return nil",
+			values:   []*int{},
+			expected: nil,
+		},
+		{
+			name:     "Single non-nil value",
+			values:   []*int{&val1},
+			expected: &val1,
+		},
+		{
+			name:     "Single nil value",
+			values:   []*int{nil},
+			expected: nil,
+		},
+		{
+			name:     "All nil values should return nil",
+			values:   []*int{nil, nil, nil},
+			expected: nil,
+		},
+		{
+			name:     "First value is non-nil",
+			values:   []*int{&val1, &val2, nil},
+			expected: &val1,
+		},
+		{
+			name:     "Middle value is non-nil",
+			values:   []*int{nil, &val2, &val1},
+			expected: &val2,
+		},
+		{
+			name:     "Last value is non-nil",
+			values:   []*int{nil, nil, &val1},
+			expected: &val1,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			actual := Coalesce(tc.values...)
+			require.Equal(t, tc.expected, actual)
+		})
+	}
+}
+
+// A simple comparable struct for testing.
+type user struct {
+	ID   int
+	Name string
+}
+
+// testCoalesceForStructs tests the Coalesce function with struct types.
+func testCoalesceForStructs(t *testing.T) {
+	t.Parallel()
+
+	user1 := user{ID: 1, Name: "Alice"}
+	user2 := user{ID: 2, Name: "Bob"}
+	emptyUser := user{} // This is the zero value for the struct
+
+	testCases := []struct {
+		name     string
+		values   []user
+		expected user
+	}{
+		{
+			name:     "No arguments should return empty struct",
+			values:   []user{},
+			expected: emptyUser,
+		},
+		{
+			name:     "Single non-empty value",
+			values:   []user{user1},
+			expected: user1,
+		},
+		{
+			name:     "Single empty value",
+			values:   []user{emptyUser},
+			expected: emptyUser,
+		},
+		{
+			name:     "All empty values should return empty struct",
+			values:   []user{emptyUser, {}, user{}},
+			expected: emptyUser,
+		},
+		{
+			name:     "First value is non-empty",
+			values:   []user{user1, user2, emptyUser},
+			expected: user1,
+		},
+		{
+			name:     "Middle value is non-empty",
+			values:   []user{emptyUser, user2, user1},
+			expected: user2,
+		},
+		{
+			name:     "Last value is non-empty",
+			values:   []user{emptyUser, user{}, user1},
+			expected: user1,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			actual := Coalesce(tc.values...)
+			require.True(t, reflect.DeepEqual(actual, tc.expected))
 		})
 	}
 }
