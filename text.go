@@ -1125,3 +1125,16 @@ func Coalesce[T comparable](values ...T) T {
 	var empty T
 	return empty
 }
+
+// LimitStringLength limits the length of string `str` to a maximum length of `maxLength`
+// any extra characters are truncated
+func LimitStringLength(str string, maxLength int) string {
+	maxLength = max(maxLength, 0)
+	runes := []rune(str)
+
+	if len(runes) <= maxLength {
+		return str
+	}
+
+	return string(runes[:maxLength])
+}

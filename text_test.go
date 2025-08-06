@@ -2276,3 +2276,90 @@ func testCoalesceForStructs(t *testing.T) {
 		})
 	}
 }
+
+func Test_LimitStringLength(t *testing.T) {
+	t.Parallel()
+
+	testCases := []struct {
+		name      string
+		input     string
+		maxLength int
+		expected  string
+	}{
+		{
+			name:      "String needs truncation",
+			input:     "Hello, World!",
+			maxLength: 5,
+			expected:  "Hello",
+		},
+		{
+			name:      "String is shorter than maxLength",
+			input:     "Short",
+			maxLength: 10,
+			expected:  "Short",
+		},
+		{
+			name:      "String length is equal to maxLength",
+			input:     "Exact",
+			maxLength: 5,
+			expected:  "Exact",
+		},
+		{
+			name:      "Empty string input",
+			input:     "",
+			maxLength: 10,
+			expected:  "",
+		},
+		{
+			name:      "maxLength is zero",
+			input:     "This should be empty",
+			maxLength: 0,
+			expected:  "",
+		},
+		{
+			name:      "Empty string and maxLength is zero",
+			input:     "",
+			maxLength: 0,
+			expected:  "",
+		},
+		{
+			name:      "String with multi-byte UTF-8 characters that fits",
+			input:     "你好世界",
+			maxLength: 12,
+			expected:  "你好世界",
+		},
+		{
+			name:      "String with multi-byte UTF-8 characters that gets truncated cleanly",
+			input:     "你好世界",
+			maxLength: 2,
+			expected:  "你好",
+		},
+		{
+			name:      "Truncation mid-character with multi-byte UTF-8 string",
+			input:     "你好世界",
+			maxLength: 3,
+			expected:  "你好世",
+		},
+		{
+			name:      "String with leading/trailing spaces",
+			input:     "  spaced out  ",
+			maxLength: 8,
+			expected:  "  spaced",
+		},
+		{
+			name:      "Negative maxLength",
+			input:     "Handle negative max length",
+			maxLength: -5,
+			expected:  "",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			actual := LimitStringLength(tc.input, tc.maxLength)
+			require.Equal(t, tc.expected, actual)
+		})
+	}
+}
